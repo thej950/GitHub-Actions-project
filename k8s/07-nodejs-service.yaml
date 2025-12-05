@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: php-web
+  name: node-web-svc
   namespace: webapp
 spec:
   type: LoadBalancer
   selector:
-    app: php-web
+    app: node-web
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 3000

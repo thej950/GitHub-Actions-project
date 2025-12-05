@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: php-web
+  name: node-web
   namespace: webapp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: php-web
+      app: node-web
   template:
     metadata:
       labels:
-        app: php-web
+        app: node-web
     spec:
       containers:
-      - name: php-web
-        image: navathej408/php:latest
+      - name: node-web
+        image: navathej408/mynode:latest
         ports:
-          - containerPort: 80
+          - containerPort: 3000
         resources:
           requests:
             memory: "128Mi"

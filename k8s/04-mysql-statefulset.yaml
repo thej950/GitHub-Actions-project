@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: mysql
-        image: navathej408/mysql:latest
+        image: navathej408/mydb:latest
         env:
         - name: MYSQL_ROOT_PASSWORD
           value: "whizlabs"
