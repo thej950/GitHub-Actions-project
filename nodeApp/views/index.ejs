@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Employee Registration</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<!-- Top Image Banner -->
+<div class="top-image">
+    <img src="/image.png" alt="Company Logo">
+</div>
+
+<div class="main-container">
+
+    <!-- Left Section -->
+    <div class="card">
+
+        <% if (msg) { %>
+            <div class="msg"><%= msg %></div>
+        <% } %>
+
+        <h2>Employee Registration</h2>
+
+        <form method="POST" action="/">
+            <input type="text" name="name" placeholder="Enter employee name" required>
+            <input type="text" name="mobile" placeholder="Enter mobile number" required>
+            <button type="submit">Add Employee</button>
+        </form>
+
+    </div>
+
+    <!-- Right Section -->
+    <div class="table-box">
+        <h2>Last 3 Employees</h2>
+
+        <% if (employees.length > 0) { %>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                </tr>
+
+                <% employees.forEach(emp => { %>
+                    <tr>
+                        <td><%= emp.id %></td>
+                        <td><%= emp.name %></td>
+                        <td><%= emp.mobile %></td>
+                    </tr>
+                <% }) %>
+            </table>
+        <% } else { %>
+            <p>No employees found</p>
+        <% } %>
+
+    </div>
+
+</div>
+
+</body>
+</html>

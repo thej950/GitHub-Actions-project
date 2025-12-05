@@ -17,19 +17,22 @@ services:
 
   web:
     build:
-      context: ./php
+      context: ./nodeApp
       dockerfile: Dockerfile
-    container_name: web
+    container_name: nodeapp
     depends_on:
       - db
     ports:
-      - "80:80"
+      - "3000:3000"
     networks:
       webapp:
         ipv4_address: 192.168.0.3
-    volumes:
-      - ./php:/var/www/html:cached
     restart: unless-stopped
+    environment:
+      DB_HOST: 192.168.0.2
+      DB_USER: root
+      DB_PASS: whizlabs
+      DB_NAME: company
 
 volumes:
   mysql-data:
@@ -41,5 +44,3 @@ networks:
       config:
         - subnet: "192.168.0.0/24"
           gateway: "192.168.0.1"
-
-
