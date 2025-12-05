@@ -4,7 +4,6 @@ metadata:
   name: mysql
   namespace: webapp
 spec:
-  ClusterIP: None
   ports:
     - name: mysql-tcp
       port: 3306
