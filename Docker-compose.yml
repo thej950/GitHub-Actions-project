@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  db:
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: whizlabs
+    networks:
+      webapp:
+        ipv4_address: 192.168.0.2
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: web
+    depends_on:
+      - db
+    ports:
+      - "80:80"
+    networks:
+      webapp:
+        ipv4_address: 192.168.0.3
+    volumes:
+      - ./php:/var/www/html:cached
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+
+networks:
+  webapp:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "192.168.0.0/24"
+          gateway: "192.168.0.1"
+
+

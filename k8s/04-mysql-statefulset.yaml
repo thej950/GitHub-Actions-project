@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  namespace: webapp
+spec:
+  serviceName: "mysql"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: navathej408/mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "whizlabs"
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+          - name: mysql-storage
+            mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: manual
+        resources:
+          requests:
+            storage: 5Gi
