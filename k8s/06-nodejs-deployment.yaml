@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: node-web
-        image: navathej408/mynode:v1
+        image: navathej408/mynode:v2
         ports:
           - containerPort: 3000
         resources:
