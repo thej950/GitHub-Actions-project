@@ -8,6 +8,5 @@ spec:
     - name: mysql-tcp
       port: 3306
       protocol: TCP
-      containerPort: 3306
   selector:
     app: mysql 
