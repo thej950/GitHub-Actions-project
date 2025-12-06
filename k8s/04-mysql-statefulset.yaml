@@ -4,8 +4,8 @@ metadata:
   name: mysql
   namespace: webapp
 spec:
-  serviceName: "mysql"
-  replicas: 2
+  serviceName: mysql
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -25,7 +25,12 @@ spec:
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql
-      volumes:
-        - name: mysql-storage
-          persistentVolumeClaim:
-            claimName: mysql-pvc
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: manual
+        resources:
+          requests:
+            storage: 15Gi
