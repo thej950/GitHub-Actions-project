@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: navathej408/mydb:v5
+          image: navathej408/mydb:v10
           imagePullPolicy: Always
           env:
             - name: MYSQL_ROOT_PASSWORD
