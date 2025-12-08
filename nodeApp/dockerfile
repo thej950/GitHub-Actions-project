@@ -4,13 +4,13 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY nodeApp/package*.json ./
 
 # Install dependencies
 RUN npm install 
 
 # Copy entire project
-COPY . .
+COPY nodeApp/ .
 
 # ---------- Stage 2: Final Image ----------
 FROM node:18-alpine
