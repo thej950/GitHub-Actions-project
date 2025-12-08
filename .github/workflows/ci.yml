@@ -7,21 +7,31 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository code
       - uses: actions/checkout@v4
         
-      # List files for debugging purposes
       - name: Testing
         run: |
           ls -la
 
-      # Log in to Azure Container Registry using secrets
+      # Extract tag name
+      - name: Extract tag
+        id: tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          else
+            TAG=latest
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
       - name: Login to Azure Container Registry
         uses: docker/login-action@v3
         with:
@@ -29,17 +39,12 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      # Build the Docker image and tag it with the commit SHA and v1
-      # Build and push Node.js Docker image
       - name: Build and push Node.js image
         run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ github.sha }} -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:v1 -f nodeApp/Dockerfile .
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ github.sha }}
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:v1
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }} -f nodeApp/Dockerfile .
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }}
 
-      # Build and push MySQL Docker image
       - name: Build and push MySQL image
         run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ github.sha }} -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:v1 -f mysql/Dockerfile .
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ github.sha }}
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:v1
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }} -f mysql/Dockerfile .
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }}
