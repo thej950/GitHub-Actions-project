@@ -39,12 +39,47 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and push Node.js image
+      # Build images
+      - name: Build Node.js image
         run: |
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }} -f nodeApp/Dockerfile .
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }}
 
-      - name: Build and push MySQL image
+      - name: Build MySQL image
         run: |
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }} -f mysql/Dockerfile .
+
+      # TRIVY SCAN
+      - name: Scan Node.js image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }}
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+
+      - name: Scan MySQL image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }}
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+
+      # Push images
+      - name: Push Node.js image
+        run: |
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }}
+
+      - name: Push MySQL image
+        run: |
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }}
+
+      # - name: Build and push Node.js image
+      #   run: |
+      #     docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }} -f nodeApp/Dockerfile .
+      #     docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }}
+
+      # - name: Build and push MySQL image
+      #   run: |
+      #     docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }} -f mysql/Dockerfile .
+      #     docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }}
