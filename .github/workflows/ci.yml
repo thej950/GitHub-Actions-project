@@ -3,7 +3,10 @@ name: Docker Build (CI)
 on:
   pull_request:
     branches:
-      - main   
+      - main
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -27,12 +30,16 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
 
       # Build the Docker image and tag it with the commit SHA and v1
-      - name: Build docker image
+      # Build and push Node.js Docker image
+      - name: Build and push Node.js image
         run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/node:${{ github.sha }} -t ${{ secrets.ACR_LOGIN_SERVER }}/node:v1 .
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ github.sha }} -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:v1 -f nodeApp/Dockerfile .
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ github.sha }}
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:v1
 
-      # Push the Docker image to Azure Container Registry
-      - name: Push docker image
+      # Build and push MySQL Docker image
+      - name: Build and push MySQL image
         run: |
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/node:${{ github.sha }}
-          docker push ${{ secrets.ACR_LOGIN_SERVER }}/node:v1
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ github.sha }} -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:v1 -f mysql/Dockerfile .
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ github.sha }}
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:v1
