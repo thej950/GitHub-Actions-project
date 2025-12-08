@@ -4,9 +4,9 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
     tags:
       - 'v*'
 
@@ -74,12 +74,3 @@ jobs:
         run: |
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }}
 
-      # - name: Build and push Node.js image
-      #   run: |
-      #     docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }} -f nodeApp/Dockerfile .
-      #     docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }}
-
-      # - name: Build and push MySQL image
-      #   run: |
-      #     docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }} -f mysql/Dockerfile .
-      #     docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }}
