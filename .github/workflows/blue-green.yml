@@ -1,0 +1,83 @@
+name: Blue-Green Deploy
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  blue-green-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ secrets.ACR_USERNAME }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ secrets.AKS_RG }} \
+            --name ${{ secrets.AKS_NAME }} \
+            --overwrite-existing
+
+      - name: Extract tag
+        id: tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+          else
+            TAG=latest
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Detect active environment
+        id: detect_env
+        run: |
+          CURRENT_SELECTOR=$(kubectl get svc node-web-svc -n webapp -o jsonpath='{.spec.selector.version}' 2>/dev/null || echo "blue")
+          if [ "$CURRENT_SELECTOR" = "blue" ]; then
+            NEXT_ENV="green"
+          else
+            NEXT_ENV="blue"
+          fi
+          echo "current_env=$CURRENT_SELECTOR" >> $GITHUB_OUTPUT
+          echo "next_env=$NEXT_ENV" >> $GITHUB_OUTPUT
+
+      - name: Deploy to inactive environment
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          NEXT_ENV=${{ steps.detect_env.outputs.next_env }}
+
+          echo "Deploying to $NEXT_ENV with tag=$TAG"
+
+          if [ "$NEXT_ENV" = "green" ]; then
+            kubectl set image deployment/node-web-green \
+              node-web=${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG} \
+              -n webapp
+          else
+            kubectl set image deployment/node-web-blue \
+              node-web=${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG} \
+              -n webapp
+          fi
+
+      - name: Wait for rollout
+        run: |
+          NEXT_ENV=${{ steps.detect_env.outputs.next_env }}
+          kubectl rollout status deployment/node-web-${NEXT_ENV} -n webapp --timeout=5m
+
+      - name: Switch traffic to new environment
+        run: |
+          NEXT_ENV=${{ steps.detect_env.outputs.next_env }}
+          kubectl patch svc node-web-svc -n webapp -p '{"spec":{"selector":{"version":"'${NEXT_ENV}'"}}}'
+          echo "Switched service selector to ${NEXT_ENV}"
+
+      - name: Post-deploy message
+        run: |
+          echo "Blue-Green deployment complete. Active environment: ${{ steps.detect_env.outputs.next_env }}"
