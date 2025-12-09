@@ -42,11 +42,11 @@ jobs:
       # Build images
       - name: Build Node.js image
         run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }} -f nodeApp/Dockerfile .
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }} -f nodeApp/Dockerfile nodeApp/
 
       - name: Build MySQL image
         run: |
-          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }} -f mysql/Dockerfile .
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }} -f mysql/Dockerfile mysql/
 
       # TRIVY SCAN
       - name: Scan Node.js image with Trivy
