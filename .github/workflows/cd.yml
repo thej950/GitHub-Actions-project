@@ -22,7 +22,7 @@ jobs:
       # ACR Login
       - name: Login to Azure Container Registry
         run: |
-          az acr login --name ${{ secrets.ACR_NAME }}
+          az acr login --name ${{ secrets.ACR_USERNAME }}
 
       # AKS Login
       - name: Get AKS Credentials
