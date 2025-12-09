@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: node-web
-        image: IMAGE_NODE # thej5021.azurecr.io/nodeapp:latest
+        image: thej5021.azurecr.io/nodeapp:latest
         imagePullPolicy: Always
         ports:
           - containerPort: 3000
