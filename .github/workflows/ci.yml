@@ -1,14 +1,11 @@
 name: Docker Build CI
 
 on:
-  # pull_request:
-  #   branches:
-  #     - main
   push:
     branches:
       - main
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
@@ -16,12 +13,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        
-      - name: Testing
-        run: |
-          ls -la
 
-      # Extract tag name
+      - name: Testing
+        run: ls -la
+
       - name: Extract tag
         id: tag
         run: |
@@ -39,7 +34,6 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      # Build images
       - name: Build Node.js image
         run: |
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }} -f nodeApp/Dockerfile nodeApp/
@@ -48,24 +42,22 @@ jobs:
         run: |
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }} -f mysql/Dockerfile mysql/
 
-      # TRIVY SCAN
       - name: Scan Node.js image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }}
-          format: 'table'
-          exit-code: '0'
+          format: table
+          exit-code: 0
           ignore-unfixed: true
 
       - name: Scan MySQL image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }}
-          format: 'table'
-          exit-code: '0'
+          format: table
+          exit-code: 0
           ignore-unfixed: true
 
-      # Push images
       - name: Push Node.js image
         run: |
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${{ steps.tag.outputs.tag }}
@@ -74,3 +66,8 @@ jobs:
         run: |
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/mysql:${{ steps.tag.outputs.tag }}
 
+  deploy:
+    needs: build
+    uses: ./.github/workflows/cd.yml
+    with:
+      ref: ${{ github.ref }}

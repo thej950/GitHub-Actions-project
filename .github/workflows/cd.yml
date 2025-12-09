@@ -1,40 +1,36 @@
 name: Deploy to AKS (CD)
 
 on:
-  workflow_run:
-    workflows: ["Docker Build CI"]
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
 
-      # Azure Login using Service Principal 
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # ACR Login
-      - name: Login to Azure Container Registry
+      - name: ACR Login
         run: |
           az acr login --name ${{ secrets.ACR_USERNAME }}
 
-      # AKS authentication
-      - name: Get AKS Credentials
+      - name: Get AKS creds
         run: |
           az aks get-credentials \
             --resource-group ${{ secrets.AKS_RG }} \
             --name ${{ secrets.AKS_NAME }} \
             --overwrite-existing
 
-      # Deploy to AKS (runs after CI workflow completion)
-      - name: Deploy manifests to AKS
-        run: |
-          kubectl apply -f k8s/
+      - name: Deploy to AKS
+        run: kubectl apply -f k8s/
