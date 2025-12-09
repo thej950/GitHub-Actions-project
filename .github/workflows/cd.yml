@@ -1,0 +1,45 @@
+name: Deploy to AKS (CD)
+
+on:
+  push:
+    tags:
+      - "v*"       
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repo
+      - uses: actions/checkout@v4
+
+      # Azure Login
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # ACR Login
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+
+      # AKS Login
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ secrets.AKS_RG }} \
+            --name ${{ secrets.AKS_NAME }} \
+            --overwrite-existing
+
+      # Replace image tags inside k8s manifests
+      - name: Update K8s manifest images
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          sed -i "s|IMAGE_NODE|${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG}|g" k8s/nodeapp-deploy.yaml
+          sed -i "s|IMAGE_MYSQL|${{ secrets.ACR_LOGIN_SERVER }}/mysql:${TAG}|g" k8s/mysql-deploy.yaml
+
+      # Deploy to Kubernetes
+      - name: Deploy manifests to AKS
+        run: |
+          kubectl apply -f k8s/
