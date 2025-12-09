@@ -1,8 +1,8 @@
-name: Deploy to AKS (CD)
+name: Deploy to AKS CD
 
 on:
   workflow_run:
-    workflows: ["Docker Build (CI)"]
+    workflows: ["Docker Build CI"]
     types:
       - completed
 jobs:
