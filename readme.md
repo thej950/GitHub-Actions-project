@@ -17,3 +17,9 @@ docker network inspect project_webapp
 # somes changes for tags 
 
 # some more changes for tags 
+
+
+
+
+
+# Changes complets deployim into k8s very good 
