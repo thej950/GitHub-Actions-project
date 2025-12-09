@@ -36,8 +36,8 @@ jobs:
       - name: Update K8s manifest images
         run: |
           TAG=${GITHUB_REF#refs/tags/}
-          sed -i "s|IMAGE_NODE|${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG}|g" k8s/nodeapp-deploy.yaml
-          sed -i "s|IMAGE_MYSQL|${{ secrets.ACR_LOGIN_SERVER }}/mysql:${TAG}|g" k8s/mysql-deploy.yaml
+          sed -i "s|IMAGE_NODE|${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG}|g" k8s/05-nodejs-deployment.yaml
+          sed -i "s|IMAGE_MYSQL|${{ secrets.ACR_LOGIN_SERVER }}/mysql:${TAG}|g" k8s/03-mysql-statefulset.yaml
 
       # Deploy to Kubernetes
       - name: Deploy manifests to AKS
