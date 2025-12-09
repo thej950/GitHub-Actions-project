@@ -23,3 +23,7 @@ docker network inspect project_webapp
 
 
 # Changes complets deployim into k8s very good 
+
+
+
+## ci-cd implemented with workflow call 
