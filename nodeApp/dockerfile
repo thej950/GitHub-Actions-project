@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm init -y && npm install express mysql2 ejs dotenv
+RUN npm install
 
 # Copy entire project
 COPY . .
