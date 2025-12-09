@@ -1,12 +1,17 @@
 name: Deploy to AKS (CD)
 
 on:
+  workflow_run:
+    workflows: ["Docker Build CI"]
+    types:
+      - completed
   push:
     tags:
       - "v*"
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-latest
 
     steps:
@@ -32,9 +37,69 @@ jobs:
             --name ${{ secrets.AKS_NAME }} \
             --overwrite-existing
 
+      # Extract tag for versioning
+      - name: Extract tag
+        id: tag
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "is_tag=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_tag=false" >> $GITHUB_OUTPUT
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
 
-      # Deploy to AKS
-      - name: Deploy manifests to AKS
+      # Detect current active environment (blue or green)
+      - name: Detect active environment
+        id: detect_env
+        run: |
+          CURRENT_SELECTOR=$(kubectl get svc node-web-svc -n webapp -o jsonpath='{.spec.selector.version}' 2>/dev/null || echo "blue")
+          if [ "$CURRENT_SELECTOR" = "blue" ]; then
+            NEXT_ENV="green"
+          else
+            NEXT_ENV="blue"
+          fi
+          echo "current_env=$CURRENT_SELECTOR" >> $GITHUB_OUTPUT
+          echo "next_env=$NEXT_ENV" >> $GITHUB_OUTPUT
+
+      # Deploy to inactive environment (blue-green)
+      - name: Deploy to ${{ steps.detect_env.outputs.next_env }} environment
+        if: ${{ steps.tag.outputs.is_tag == 'true' }}
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          NEXT_ENV=${{ steps.detect_env.outputs.next_env }}
+          
+          echo "Deploying to $NEXT_ENV environment with tag: $TAG"
+          
+          if [ "$NEXT_ENV" = "green" ]; then
+            kubectl set image deployment/node-web-green \
+              node-web=${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG} \
+              -n webapp
+          else
+            kubectl set image deployment/node-web-blue \
+              node-web=${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG} \
+              -n webapp
+          fi
+
+      # Wait for deployment to be ready
+      - name: Wait for deployment to be ready
+        if: ${{ steps.tag.outputs.is_tag == 'true' }}
+        run: |
+          NEXT_ENV=${{ steps.detect_env.outputs.next_env }}
+          kubectl rollout status deployment/node-web-${NEXT_ENV} -n webapp --timeout=5m
+
+      # Switch traffic to new environment
+      - name: Switch traffic to ${{ steps.detect_env.outputs.next_env }} environment
+        if: ${{ steps.tag.outputs.is_tag == 'true' }}
+        run: |
+          NEXT_ENV=${{ steps.detect_env.outputs.next_env }}
+          echo "Switching traffic from ${{ steps.detect_env.outputs.current_env }} to $NEXT_ENV"
+          kubectl patch svc node-web-svc -n webapp -p '{"spec":{"selector":{"version":"'${NEXT_ENV}'"}}}'
+          echo "Traffic successfully switched to $NEXT_ENV environment"
+
+      # Fallback: Deploy to both if not a tag push
+      - name: Deploy manifests to AKS (non-tag deployment)
+        if: ${{ steps.tag.outputs.is_tag == 'false' }}
         run: |
           kubectl apply -f k8s/
-          
