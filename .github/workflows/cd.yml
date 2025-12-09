@@ -1,23 +1,19 @@
-name: Deploy to AKS CD
+name: Deploy to AKS (CD)
 
 on:
   push:
-    branches:
-      - main
-  workflow_run:
-    workflows: ["Docker Build CI"]
-    types:
-      - completed
-      
+    tags:
+      - "v*"
+
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Only run if CI succeeded
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout
       - uses: actions/checkout@v4
 
-      # Azure Login
+      # Azure Login using Service Principal 
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -26,9 +22,9 @@ jobs:
       # ACR Login
       - name: Login to Azure Container Registry
         run: |
-          az acr login --name ${{ secrets.ACR_USERNAME }}
+          az acr login --name ${{ secrets.ACR_NAME }}
 
-      # AKS Login
+      # AKS authentication
       - name: Get AKS Credentials
         run: |
           az aks get-credentials \
@@ -36,7 +32,73 @@ jobs:
             --name ${{ secrets.AKS_NAME }} \
             --overwrite-existing
 
-      # Deploy to Kubernetes
-      - name: Deploy manifests
+      # 🔥 IMAGE Replacement (Very Important)
+      # - name: Update K8s manifest images
+      #   run: |
+      #     TAG=${GITHUB_REF#refs/tags/}
+
+      #     echo "Applying image tag: $TAG"
+
+      #     # Replace Node.js Deployment image
+      #     sed -i "s|IMAGE_NODE|${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG}|g" k8s/05-nodejs-deployment.yaml
+
+      #     # Replace MySQL StatefulSet image
+      #     sed -i "s|IMAGE_MYSQL|${{ secrets.ACR_LOGIN_SERVER }}/mysql:${TAG}|g" k8s/03-mysql-statefulset.yaml
+
+      # Deploy to AKS
+      - name: Deploy manifests to AKS
         run: |
           kubectl apply -f k8s/
+
+
+
+
+
+
+
+
+
+
+
+
+
+# name: Deploy to AKS CD
+
+# on:
+  
+#   workflow_run:
+#     workflows: ["Docker Build CI"]
+#     types:
+#       - completed
+      
+# jobs:
+#   deploy:
+#     if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Only run if CI succeeded
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       # Azure Login
+#       - name: Azure Login
+#         uses: azure/login@v2
+#         with:
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#       # ACR Login
+#       - name: Login to Azure Container Registry
+#         run: |
+#           az acr login --name ${{ secrets.ACR_USERNAME }}
+
+#       # AKS Login
+#       - name: Get AKS Credentials
+#         run: |
+#           az aks get-credentials \
+#             --resource-group ${{ secrets.AKS_RG }} \
+#             --name ${{ secrets.AKS_NAME }} \
+#             --overwrite-existing
+
+#       # Deploy to Kubernetes
+#       - name: Deploy manifests
+#         run: |
+#           kubectl apply -f k8s/
