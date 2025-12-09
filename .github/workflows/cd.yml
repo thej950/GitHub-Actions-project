@@ -1,16 +1,17 @@
 name: Deploy to AKS (CD)
 
 on:
-  push:
-    tags:
-      - "v*"       
+  workflow_run:
+    workflows: ["Docker Build (CI)"]  
+    types:
+      - completed
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Only run if CI succeeded
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
       - uses: actions/checkout@v4
 
       # Azure Login
@@ -32,14 +33,7 @@ jobs:
             --name ${{ secrets.AKS_NAME }} \
             --overwrite-existing
 
-      # Replace image tags inside k8s manifests
-      # - name: Update K8s manifest images
-      #   run: |
-      #     TAG=${GITHUB_REF#refs/tags/}
-      #     sed -i "s|IMAGE_NODE|${{ secrets.ACR_LOGIN_SERVER }}/nodeapp:${TAG}|g" k8s/05-nodejs-deployment.yaml
-      #     sed -i "s|IMAGE_MYSQL|${{ secrets.ACR_LOGIN_SERVER }}/mysql:${TAG}|g" k8s/03-mysql-statefulset.yaml
-
       # Deploy to Kubernetes
-      - name: Deploy manifests to AKS
+      - name: Deploy manifests
         run: |
           kubectl apply -f k8s/
