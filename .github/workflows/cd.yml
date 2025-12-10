@@ -9,6 +9,9 @@ on:
       ref:
         required: true
         type: string
+    secrets:
+      KUBE_CONFIG_DATA:
+        required: true
 
 jobs:
   deploy:
