@@ -13,9 +13,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Testing
-        run: ls -la
+      - name: Load kubeconfig
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBE_CONFIG_DATA" | sed 's/\\n/\n/g' > ~/.kube/config 
+          chmod 600 ~/.kube/config
+          ls -la ~/.kube
 
       - name: Extract tag
         id: tag
