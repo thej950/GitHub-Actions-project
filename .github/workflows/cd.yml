@@ -35,30 +35,13 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f k8s/
-
+      
+      - name: wait for pods to be ready
+        run: |
+          run: sleep 60 # wait for some time before checking pod status
       - name: check pods 
         run: | 
-          kubectl get pods 
-
-      
-      # - name: Azure Login
-      #   uses: azure/login@v1
-      #   with:
-      #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
-      #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          # auth-type: SERVICE_PRINCIPAL
-
-      # - name: ACR Login
-      #   run: |
-      #     az acr login --name ${{ secrets.ACR_USERNAME }}
-
-      # - name: Get AKS creds
-      #   run: |
-      #     az aks get-credentials \
-      #       --resource-group ${{ secrets.AKS_RG }} \
-      #       --name ${{ secrets.AKS_NAME }} \
-      #       --overwrite-existing
-
-      # - name: Deploy to AKS
-      #   run: kubectl apply -f k8s/
+          kubectl get pods -n webapp
+      - name: check services
+        run: |
+          kubectl get svc -n webapp
