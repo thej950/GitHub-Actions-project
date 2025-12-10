@@ -7,6 +7,7 @@ spec:
   type: LoadBalancer
   selector:
     app: node-web
+    version: blue  # Initially points to blue
   ports:
     - port: 80
       targetPort: 3000

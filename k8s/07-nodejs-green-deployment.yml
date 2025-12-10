@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-web-green
+  namespace: webapp
+  labels:
+    version: green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-web
+      version: green
+  template:
+    metadata:
+      labels:
+        app: node-web
+        version: green
+    spec:
+      containers:
+      - name: node-web
+        image: thej5021.azurecr.io/nodeapp:latest
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 3000
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        env:
+          - name: DB_HOST
+            value: "mysql"
+          - name: DB_USER
+            value: "root"
+          - name: DB_PASSWORD
+            value: "whizlabs"
+          - name: DB_NAME
+            value: "company"
