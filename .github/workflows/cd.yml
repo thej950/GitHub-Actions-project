@@ -9,25 +9,39 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
       
-      - name: Azure Login
-        uses: azure/login@v1
-        # with:
-        #   creds: ${{ secrets.AZURE_CREDENTIALS }}
-        #   enable-AzPSSession: true
+      - name: Load kubeconfig
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        run: |
+          ls -la
+          mkdir -p ~/.kube
+          echo "$KUBE_CONFIG_DATA" | sed 's/\\n/\n/g' > ~/.kube/config 
+          chmod 600 ~/.kube/config
+      - name: Verify the Cluster Access
+        run: |
+          kubectl get nodes
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/
 
+      - name: check pods 
+        run: | 
+          kubectl get pods 
 
-        
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           # auth-type: SERVICE_PRINCIPAL
 
       # - name: ACR Login
