@@ -2,7 +2,7 @@
 
 ## 📌 **Project Overview**
 
-> his project shows how I built a full CI/CD pipeline using GitHub Actions to deploy a Node.js frontend and a MySQL backend into an Azure Kubernetes Service (AKS) cluster.
+> I built a full CI/CD pipeline using GitHub Actions to deploy a Node.js frontend and a MySQL backend into an Azure Kubernetes Service (AKS) cluster.
 > 
 > The pipeline automatically builds Docker images, scans them for any security issues, pushes the images into Azure Container Registry (ACR), and then deploys the updated Kubernetes files into AKS.
 > 
