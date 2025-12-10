@@ -24,6 +24,7 @@ jobs:
           echo "$KUBE_CONFIG_DATA" | sed 's/\\n/\n/g' > ~/.kube/config 
           chmod 600 ~/.kube/config
           ls -la ~/.kube
+          kubectl --version
       - name: Verify the Cluster Access
         run: |
           kubectl get nodes
