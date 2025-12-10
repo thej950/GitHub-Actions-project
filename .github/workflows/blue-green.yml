@@ -1,10 +1,7 @@
 name: Blue-Green Deploy
 
 on:
-  push:
-    tags:
-      - "v*"
-
+  workflow_dispatch:
 jobs:
   blue-green-deploy:
     runs-on: ubuntu-latest
