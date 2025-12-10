@@ -28,7 +28,7 @@ jobs:
           chmod 600 ~/.kube/config
           ls -la ~/.kube
           cat ~/.kube/config
-          kubectl --version
+        
       - name: Verify the Cluster Access
         run: |
           kubectl get nodes
